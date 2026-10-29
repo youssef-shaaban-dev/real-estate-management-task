@@ -98,6 +98,8 @@ All accounts are created with password: **`Password123!`**
 ## 📁 Key Files & Submission Deliverables
 - [`REVIEW.md`](./REVIEW.md): Comprehensive Part B pull request code review ordered from most to least severe.
 - [`DECISIONS.md`](./DECISIONS.md): Architectural decisions and defense answers for Part C (under 150 words with exact line references).
+- [`AI_LOGS.md`](./AI_LOGS.md): Summary of AI collaborations, human corrections, and audit guide.
+- [`ai-logs/`](./ai-logs/): Complete exported session transcripts (`transcript.jsonl` and `transcript_full.jsonl`).
 - [`prisma/schema.prisma`](./prisma/schema.prisma): Complete data model with integer sen amounts and audit logs.
 - [`supabase/migrations/`](./supabase/migrations/): SQL migrations for initial schema, exclusion constraints, and RLS policies.
 - [`src/scripts/seed.ts`](./src/scripts/seed.ts) / [`src/lib/seed.ts`](./src/lib/seed.ts): Automated database seeding script.

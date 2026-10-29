@@ -2,15 +2,16 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { ROLES, AppRole } from '@/lib/constants'
 
-export type UserRole = 'manager' | 'staff' | 'tenant'
+export type UserRole = AppRole
 
 export interface AuthContext {
   userId: string
   email: string
-  role: UserRole
+  role: AppRole
   orgId: string
-  tenantId?: string // Defined only when role === 'tenant'
+  tenantId?: string // Defined only when role === ROLES.TENANT
 }
 
 /**
@@ -46,8 +47,8 @@ export async function getAuthContext(req?: Request): Promise<AuthContext | null>
       if (authHeader?.toLowerCase().startsWith('bearer ')) {
         bearerToken = authHeader.slice(7).trim()
       }
-    } catch (err) {
-      console.error('Error getting auth context:', err)
+    } catch {
+      // ignore
     }
   }
 
@@ -68,7 +69,7 @@ export async function getAuthContext(req?: Request): Promise<AuthContext | null>
     return {
       userId: user.id,
       email: user.email ?? '',
-      role: membership.role as 'manager' | 'staff',
+      role: membership.role as AppRole,
       orgId: membership.orgId,
     }
   }
@@ -82,7 +83,7 @@ export async function getAuthContext(req?: Request): Promise<AuthContext | null>
     return {
       userId: user.id,
       email: user.email ?? '',
-      role: 'tenant',
+      role: ROLES.TENANT,
       orgId: tenant.orgId,
       tenantId: tenant.id,
     }
@@ -98,7 +99,7 @@ export async function getAuthContext(req?: Request): Promise<AuthContext | null>
  */
 export async function requireAuth(
   req: Request | undefined,
-  allowedRoles?: UserRole[]
+  allowedRoles?: AppRole[]
 ): Promise<{ auth: AuthContext; errorResponse?: never } | { auth?: never; errorResponse: NextResponse }> {
   const auth = await getAuthContext(req)
 
@@ -112,4 +113,3 @@ export async function requireAuth(
 
   return { auth }
 }
-

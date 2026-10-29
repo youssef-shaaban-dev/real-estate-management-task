@@ -19,6 +19,13 @@ The project is a Rent Collection System (leases, invoices, cash/bank/online paym
 4. **Database & Auth (RLS):** Ensure proper server-side authorization. Use standard Auth for client requests, and `SUPABASE_SERVICE_ROLE_KEY` ONLY for secure backend operations (like webhooks) that legitimately need to bypass RLS.
 5. **Time Management:** Do NOT over-engineer. Write clean, modular, and functional code that directly satisfies the requirements. No unnecessary features.
 
+# Clean Code & Architecture Rules (CRITICAL)
+
+1. **NO MAGIC STRINGS:** Absolutely NO hardcoded strings. Strictly use auto-generated Prisma Enums (e.g., `MemberRole.manager`, `PaymentStatus.pending_verification`) across the entire codebase.
+2. **LEAN ROUTE HANDLERS:** Keep `route.ts` files thin. Extract heavy business logic (especially complex DB transactions) into dedicated service functions inside `src/lib/`.
+3. **MODULAR FRONTEND COMPONENTS:** Keep React components small, focused, and maintainable. If a component grows too large, extract its parts into smaller UI sub-components.
+4. **NO EXCESSIVE COMMENTS:** Do NOT over-comment the code. Write clean, self-documenting code. Only add comments to explain complex business rules (the "WHY"). Never comment on obvious code mechanics (the "WHAT"). Avoid conversational or boilerplate comments inside the files.
+
 # Workflow Instructions (Step-by-Step Loop)
 
 Do NOT generate the entire project at once. You must strictly follow this loop:

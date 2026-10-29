@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { generateSchedule, invoiceStatus, InvoiceStatus } from '@/lib/billing'
-import { AUDIT_ACTIONS, ROLES } from '@/lib/constants'
+import { AUDIT_ACTIONS, BUSINESS_CONFIG, ROLES } from '@/lib/constants'
 import { AuthContext } from '@/lib/auth'
 import { Prisma } from '@/generated/prisma/client'
 
@@ -241,9 +241,13 @@ export async function getLeaseDetailsService(auth: AuthContext, leaseId: string)
     depositSen: Number(lease.depositSen),
   }
 
+  const nowMyt = new Date(Date.now() + BUSINESS_CONFIG.UTC_OFFSET_MS)
+  const defaultReceivedAtMyt = nowMyt.toISOString().slice(0, 16)
+
   return {
     lease: formattedLease,
     invoices: formattedInvoices,
     payments: formattedPayments,
+    defaultReceivedAtMyt,
   }
 }

@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx src/tests/billing.test.ts && tsx src/tests/auth.test.ts && tsx src/tests/allocation.test.ts && tsx src/tests/gateway.test.ts && tsx src/tests/report.test.ts",
-    "seed": "tsx src/scripts/seed.ts"
+    "test": "tsx --env-file=.env.local --env-file=.env src/tests/billing.test.ts && tsx --env-file=.env.local --env-file=.env src/tests/auth.test.ts && tsx --env-file=.env.local --env-file=.env src/tests/allocation.test.ts && tsx --env-file=.env.local --env-file=.env src/tests/gateway.test.ts && tsx --env-file=.env.local --env-file=.env src/tests/report.test.ts",
+    "seed": "tsx --env-file=.env.local --env-file=.env src/scripts/seed.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

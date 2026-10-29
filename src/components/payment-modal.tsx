@@ -69,7 +69,7 @@ export function RecordPaymentModal({
       try {
         const supabase = createClient()
         const fileExt = file.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`
+        const fileName = `${crypto.randomUUID()}.${fileExt}`
         const storagePath = `${orgId}/slips/${fileName}`
 
         const { error: uploadError } = await supabase.storage

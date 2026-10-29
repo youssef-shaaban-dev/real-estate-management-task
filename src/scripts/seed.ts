@@ -1,9 +1,8 @@
-import 'dotenv/config'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createLeaseService } from '@/lib/services/lease.service'
 import { recordPaymentService, approvePaymentService } from '@/lib/services/payment.service'
-import { MemberRole, PaymentMethod, ROLES, STORAGE } from '@/lib/constants'
+import { MemberRole, PaymentMethod, STORAGE } from '@/lib/constants'
 import { AuthContext } from '@/lib/auth'
 
 const SEED_PASSWORD = 'Password123!'

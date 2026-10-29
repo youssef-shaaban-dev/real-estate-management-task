@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getAuthContext } from '@/lib/auth'
-import { ROLES, MemberRole, BUSINESS_CONFIG } from '@/lib/constants'
+import { ROLES, MemberRole } from '@/lib/constants'
 import { ROUTES } from '@/lib/routes'
 import { Navbar } from '@/components/navbar'
 import { getLeaseDetailsService } from '@/lib/services/lease.service'
@@ -52,16 +52,12 @@ export default async function LeaseDetailsPage({ params }: LeasePageProps) {
     notFound()
   }
 
-  const { lease, invoices, payments } = details
+  const { lease, invoices, payments, defaultReceivedAtMyt } = details
   const isManager = auth.role === MemberRole.manager
 
   const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.amountSen, 0)
   const totalPaid = invoices.reduce((sum, inv) => sum + inv.paidSen, 0)
   const balanceRemaining = totalInvoiced - totalPaid
-
-  // Server-rendered initial Malaysia timestamp: eliminates client hydration mismatch!
-  const nowMyt = new Date(Date.now() + BUSINESS_CONFIG.UTC_OFFSET_MS)
-  const defaultReceivedAtMyt = nowMyt.toISOString().slice(0, 16)
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16">

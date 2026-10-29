@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { MemberRole, ROLES } from '@/lib/constants'
+import { MemberRole } from '@/lib/constants'
 import { AuthContext } from '@/lib/auth'
 
 export class ReportError extends Error {

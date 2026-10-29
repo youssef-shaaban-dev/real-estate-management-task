@@ -17,3 +17,4 @@ export function DashboardHeader({ orgName }: DashboardHeaderProps) {
     </div>
   )
 }
+

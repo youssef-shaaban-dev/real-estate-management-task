@@ -1,19 +1,209 @@
 generator client {
-  provider        = "prisma-client"
-  output          = "../src/generated/prisma"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// Example model for your real estate app
-model Property {
-  id          Int      @id @default(autoincrement())
-  title       String
-  price       Float
-  address     String
-  isAvailable Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum MemberRole {
+  manager
+  staff
+
+  @@map("member_role")
+}
+
+enum InvoiceKind {
+  deposit
+  rent
+
+  @@map("invoice_kind")
+}
+
+enum PaymentMethod {
+  cash
+  bank_transfer
+  online
+
+  @@map("payment_method")
+}
+
+enum PaymentStatus {
+  pending_verification
+  approved
+  rejected
+  voided
+
+  @@map("payment_status")
+}
+
+enum BillStatus {
+  pending
+  paid
+  failed
+
+  @@map("bill_status")
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Organization {
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+
+  memberships  Membership[]
+  units        Unit[]
+  tenants      Tenant[]
+  leases       Lease[]
+  invoices     Invoice[]
+  payments     Payment[]
+  allocations  PaymentAllocation[]
+  gatewayBills GatewayBill[]
+  auditLogs    AuditLog[]
+
+  @@map("organizations")
+}
+
+model Membership {
+  id     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String     @unique @map("user_id") @db.Uuid
+  orgId  String     @map("org_id") @db.Uuid
+  role   MemberRole
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@map("memberships")
+}
+
+model Unit {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId String @map("org_id") @db.Uuid
+  name  String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  leases       Lease[]
+
+  @@unique([orgId, name])
+  @@map("units")
+}
+
+model Tenant {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId    String  @map("org_id") @db.Uuid
+  userId   String  @unique @map("user_id") @db.Uuid
+  fullName String  @map("full_name")
+  email    String
+  phone    String?
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  leases       Lease[]
+
+  @@map("tenants")
+}
+
+model Lease {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId          String   @map("org_id") @db.Uuid
+  unitId         String   @map("unit_id") @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  startDate      DateTime @map("start_date") @db.Date
+  endDate        DateTime @map("end_date") @db.Date
+  monthlyRentSen BigInt   @map("monthly_rent_sen")
+  depositSen     BigInt   @default(0) @map("deposit_sen")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  unit         Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+  payments     Payment[]
+  gatewayBills GatewayBill[]
+
+  @@map("leases")
+}
+
+model Invoice {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId       String      @map("org_id") @db.Uuid
+  leaseId     String      @map("lease_id") @db.Uuid
+  kind        InvoiceKind
+  periodIndex Int?        @map("period_index")
+  periodStart DateTime?   @map("period_start") @db.Date
+  periodEnd   DateTime?   @map("period_end") @db.Date
+  dueDate     DateTime    @map("due_date") @db.Date
+  amountSen   BigInt      @map("amount_sen")
+
+  organization Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  lease        Lease               @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  allocations  PaymentAllocation[]
+
+  @@map("invoices")
+}
+
+model GatewayBill {
+  id        String     @id // App-generated, unguessable
+  orgId     String     @map("org_id") @db.Uuid
+  leaseId   String     @map("lease_id") @db.Uuid
+  amountSen BigInt     @map("amount_sen")
+  status    BillStatus @default(pending)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  lease        Lease        @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  payment      Payment?
+
+  @@map("gateway_bills")
+}
+
+model Payment {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId          String        @map("org_id") @db.Uuid
+  leaseId        String        @map("lease_id") @db.Uuid
+  amountSen      BigInt        @map("amount_sen")
+  unappliedSen   BigInt        @default(0) @map("unapplied_sen")
+  method         PaymentMethod
+  status         PaymentStatus
+  receivedAt     DateTime      @map("received_at") @db.Timestamptz
+  slipPath       String?       @map("slip_path")
+  gatewayBillId  String?       @unique @map("gateway_bill_id")
+  idempotencyKey String?       @unique @map("idempotency_key")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  lease        Lease               @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  gatewayBill  GatewayBill?        @relation(fields: [gatewayBillId], references: [id])
+  allocations  PaymentAllocation[]
+
+  @@map("payments")
+}
+
+model PaymentAllocation {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId     String @map("org_id") @db.Uuid
+  paymentId String @map("payment_id") @db.Uuid
+  invoiceId String @map("invoice_id") @db.Uuid
+  amountSen BigInt @map("amount_sen")
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  payment      Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("payment_allocations")
+}
+
+model AuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId     String   @map("org_id") @db.Uuid
+  actorId   String   @map("actor_id") @db.Uuid
+  action    String
+  entityId  String?  @map("entity_id")
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@map("audit_log")
 }

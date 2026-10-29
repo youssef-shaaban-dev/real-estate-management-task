@@ -228,6 +228,7 @@ export async function getLeaseDetailsService(auth: AuthContext, leaseId: string)
     method: p.method,
     status: p.status,
     receivedAt: p.receivedAt.toISOString(),
+    slipPath: p.slipPath,
   }))
 
   const formattedLease = {
